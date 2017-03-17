@@ -1,5 +1,5 @@
 #!/bin/bash
-oldServername="$( hostname )"
+serverName="$( hostname )"
 myNetworks="127.0.0.0/8 172.17.0.0/16 [::ffff:127.0.0.0/104] [::1/128]"
 myHash="hash:/etc/postfix/virtual"
 
@@ -20,31 +20,19 @@ command=service postfix start
 command=/usr/sbin/rsyslogd -n -c3
 EOF
 
-# Check for <hostname> argument
-if [[ $1 ]]; then
-	servername=$1
-else
-	servername=postfix
-	hostname $servername
-	if [[ -n "$( grep "$oldServername" /etc/hosts )" ]]; then
-		sed -i "s/$oldServername/$servername/g" /etc/hosts
-	fi
-fi
-#echo "Done setting up hostname!"
-
 # Check for <maildomain> argument
-if [[ $2 ]]; then
+if [[ $1 ]]; then
 	maildomain=$1
 else
 	maildomain=example.com
 fi
 
 #echo $maildomain
-postconf -e myhostname="$maildomain"
+postconf -e myhostname="$serverName.$maildomain"
 postconf -e mynetworks="$myNetworks"
 postconf -e virtual_alias_maps="$myHash"
 
-# Add addresses
+# Mapping virtual mail addresses
 if [[ -e /etc/postfix/virtual ]]; then
 	continue
 else
@@ -57,5 +45,5 @@ EOF
 
 postmap /etc/postfix/virtual
 
-#
+# Starting supervisord to run Postfix mail system
 /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
