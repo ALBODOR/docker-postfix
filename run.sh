@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-command="docker run -d -p 25:25 "
+command="docker run -d -p 25:25 -h mailserver "
 
 # Container name parameter
 if [[ $2 ]]; then
